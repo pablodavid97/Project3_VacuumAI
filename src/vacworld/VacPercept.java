@@ -19,13 +19,9 @@ public class VacPercept extends Percept{
 
 		super(state,agent);
 
-		int x, y;
-		int viewX, viewY;
-		int dir;
-
-		x = state.getAgentX();
-		y = state.getAgentY();
-		dir = state.getAgentDir();
+		int x = state.getAgentX();
+		int y = state.getAgentY();
+		int dir = state.getAgentDir();
 
 		// determine dirt
 		if (state.hasDirt(x,y))
@@ -34,8 +30,8 @@ public class VacPercept extends Percept{
 			dirt = false;
 
 		// determine obstacle
-		viewX = x + Direction.DELTA_X[dir];
-		viewY = y + Direction.DELTA_Y[dir];
+		int viewX = x + Direction.DELTA_X[dir];
+		int viewY = y + Direction.DELTA_Y[dir];
 		if (state.hasObstacle(viewX, viewY))
 			obstacle = true;
 		else
