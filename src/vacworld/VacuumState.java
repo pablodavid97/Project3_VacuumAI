@@ -156,6 +156,7 @@ public class VacuumState extends State {
                 }
             }
         }
+
         // state.display();
         fillUnreachableSquares(state);
         state.numDirtyLocs = state.countDirtyLocs();   // some dirty locs might have been filled by walls

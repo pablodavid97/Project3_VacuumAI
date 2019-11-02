@@ -8,7 +8,6 @@ package myagent;
 import agent.Action;
 import agent.Agent;
 import agent.Percept;
-import com.sun.org.apache.bcel.internal.generic.ARETURN;
 import vacworld.*;
 
 import java.util.ArrayList;
@@ -24,6 +23,8 @@ public class VacAgent extends Agent {
     public static final int EAST = 1;
     public static final int SOUTH = 2;
     public static final int WEST = 3;
+    public static final int MAXTURNS = 4;
+    public static final int TABLE_SIZE = 36;
 
     private final String ID = "1";
     // Think about locations you already visited.  Remember those.
@@ -34,6 +35,8 @@ public class VacAgent extends Agent {
     private int ycoor = 0;
     private int dir = NORTH;
     private ArrayList<String> path = new ArrayList<>();
+    private ArrayList<Action> actions = new ArrayList<>();
+    private ArrayList<String> obstaclesPos = new ArrayList<>();
 
     public VacAgent(){
         addPos();
@@ -58,59 +61,207 @@ public class VacAgent extends Agent {
 
         r.setSeed(System.currentTimeMillis());
         float prob;
+        String pos;
+
+        if(path.size() + obstaclesPos.size() == TABLE_SIZE){
+            System.out.println("Path Size");
+            System.out.println(path.size());
+
+            System.out.println("Obstacles size");
+            System.out.println(obstaclesPos.size());
+
+            return action;
+        }
 
         if (obstacleInFront) {
+            switch (dir) {
+                case NORTH:
+                    setYcoor(ycoor + 1);
+                    pos = "(" + xcoor + ", " + ycoor + ")";
+                    if(!obstaclesPos.contains(pos)){
+                        obstaclesPos.add(pos);
+                    }
+                    setYcoor(ycoor - 1);
+                    break;
+                case SOUTH:
+                    setYcoor(ycoor - 1);
+                    pos = "(" + xcoor + ", " + ycoor + ")";
+                    if(!obstaclesPos.contains(pos)){
+                        obstaclesPos.add(pos);
+                    }
+                    setYcoor(ycoor + 1);
+                    break;
+                case EAST:
+                    setXcoor(xcoor + 1);
+                    pos = "(" + xcoor + ", " + ycoor + ")";
+                    if(!obstaclesPos.contains(pos)){
+                        obstaclesPos.add(pos);
+                    }
+                    setXcoor(xcoor - 1);
+                    break;
+                case WEST:
+                    setXcoor(xcoor - 1);
+                    pos = "(" + xcoor + ", " + ycoor + ")";
+                    if(!obstaclesPos.contains(pos)){
+                        obstaclesPos.add(pos);
+                    }
+                    setXcoor(xcoor + 1);
+                    break;
+            }
+
+            System.out.println("obstacles");
+            System.out.println(obstaclesPos);
+
             prob = r.nextFloat();
+
             if (prob < 0.5) {
+                actions.add(turnLeft);
                 changeDirLeft();
                 return turnLeft;
             } else {
+                actions.add(turnRight);
                 changeDirRight();
                 return turnRight;
             }
         } else if (dirtStatus) {
             return suckDirt;
-        } else if(bumpFeltInPrevMove){
+        }
+        else if(bumpFeltInPrevMove){
             System.out.println("sintio la pared");
             prob = r.nextFloat();
+
             if (prob < 0.5) {
                 changeDirLeft();
+                actions.add(turnLeft);
                 return turnLeft;
             } else {
+                actions.add(turnRight);
                 changeDirRight();
                 return turnRight;
             }
         }else{
-            prob = r.nextFloat();
-            System.out.println("otra");
-            System.err.println(prob);
-            if (prob < 0.15) {
-                changeDirLeft();
-                return turnLeft;
-            } else if (prob < 0.30) {
-                changeDirRight();
-                return turnRight;
-            } else if (prob < 0.95) {
-                switch (dir){
-                    case NORTH:
-                        setYcoor(ycoor + 1);
-                        break;
-                    case SOUTH:
+            if(dir == NORTH) {
+                setYcoor(ycoor + 1);
+                if(!path.contains("(" + xcoor + ", " + ycoor + ")")){
+                    addPos();
+                    actions.add(goForward);
+                    return goForward;
+                } else {
+                    if(maxTurnsReached()) {
+                      actions.add(goForward);
+                      return goForward;
+                    } else {
                         setYcoor(ycoor - 1);
-                        break;
-                    case EAST:
-                        setXcoor(xcoor + 1);
-                        break;
-                    case WEST:
-                        setXcoor(xcoor - 1);
-                        break;
+                        prob = r.nextFloat();
+                        if (prob < 0.5) {
+                            actions.add(turnLeft);
+                            changeDirLeft();
+                            return turnLeft;
+                        } else {
+                            actions.add(turnRight);
+                            changeDirRight();
+                            return turnRight;
+                        }
+                    }
                 }
-                addPos();
-                return goForward;
+            } else if (dir == SOUTH){
+                setYcoor(ycoor - 1);
+                if(!path.contains("(" + xcoor + ", " + ycoor + ")")){
+                    addPos();
+                    actions.add(goForward);
+                    return goForward;
+                } else {
+                    if(maxTurnsReached()) {
+                        actions.add(goForward);
+                        return goForward;
+                    } else {
+                        setYcoor(ycoor + 1);
+                        prob = r.nextFloat();
+                        if (prob < 0.5) {
+                            actions.add(turnLeft);
+                            changeDirLeft();
+                            return turnLeft;
+                        } else {
+                            actions.add(turnRight);
+                            changeDirRight();
+                            return turnRight;
+                        }
+                    }
+                }
+            } else if (dir == EAST){
+                setXcoor(xcoor + 1);
+                if(!path.contains("(" + xcoor + ", " + ycoor + ")")){
+                    addPos();
+                    actions.add(goForward);
+                    return goForward;
+                } else {
+                    if(maxTurnsReached()) {
+                        actions.add(goForward);
+                        return goForward;
+                    } else {
+                        setXcoor(xcoor - 1);
+                        prob = r.nextFloat();
+                        if (prob < 0.5) {
+                            actions.add(turnLeft);
+                            changeDirLeft();
+                            return turnLeft;
+                        } else {
+                            actions.add(turnRight);
+                            changeDirRight();
+                            return turnRight;
+                        }
+                    }
+                }
             } else {
-                return action;
+                setXcoor(xcoor - 1);
+                if(!path.contains("(" + xcoor + ", " + ycoor + ")")){
+                    addPos();
+                    actions.add(goForward);
+                    return goForward;
+                } else {
+                    if(maxTurnsReached()) {
+                        actions.add(goForward);
+                        return goForward;
+                    } else {
+                        setXcoor(xcoor + 1);
+                        prob = r.nextFloat();
+                        if (prob < 0.5) {
+                            actions.add(turnLeft);
+                            changeDirLeft();
+                            return turnLeft;
+                        } else {
+                            actions.add(turnRight);
+                            changeDirRight();
+                            return turnRight;
+                        }
+                    }
+                }
             }
         }
+
+    }
+
+    public boolean maxTurnsReached(){
+        int n = actions.size();
+        int count = 0;
+
+        System.out.println("Actions");
+        System.out.println(actions);
+
+        if(n >= 4){
+            for(int i = n-4; i < n; i++){
+                Action action = actions.get(i);
+                if(action instanceof TurnLeft || action instanceof TurnRight) {
+                    count += 1;
+                }
+            }
+        }
+
+        if(count == MAXTURNS){
+            return true;
+        }
+
+        return false;
     }
 
     public void changeDirLeft(){
@@ -149,7 +300,7 @@ public class VacAgent extends Agent {
 
     public void addPos(){
         path.add("(" + xcoor + ", " + ycoor + ")");
-        System.out.println("initial path");
+        System.out.println("path");
         System.out.println(path);
     }
 
@@ -180,5 +331,4 @@ public class VacAgent extends Agent {
     public void setDir(int dir){
         this.dir = dir;
     }
-
 }
