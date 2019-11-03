@@ -11,6 +11,8 @@ import agent.Percept;
 import vacworld.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Random;
 
 /* Change the code as appropriate.  This code
@@ -31,12 +33,11 @@ public class VacAgent extends Agent {
     private boolean dirtStatus = true;
     private boolean bumpFeltInPrevMove = true;
     private boolean obstacleInFront = true;
-    private int xcoor = 0;
-    private int ycoor = 0;
+    private Coordinate coor = new Coordinate(0, 0);
     private int dir = NORTH;
-    private ArrayList<String> path = new ArrayList<>();
+    private ArrayList<Coordinate> path = new ArrayList<>();
     private ArrayList<Action> actions = new ArrayList<>();
-    private ArrayList<String> obstaclesPos = new ArrayList<>();
+    private ArrayList<Coordinate> obstaclesPos = new ArrayList<>();
 
     public VacAgent(){
         addPos();
@@ -61,55 +62,59 @@ public class VacAgent extends Agent {
 
         r.setSeed(System.currentTimeMillis());
         float prob;
-        String pos;
+        String coor;
 
         if(path.size() + obstaclesPos.size() == TABLE_SIZE){
             System.out.println("Path Size");
             System.out.println(path.size());
 
+            System.out.println("Path");
+            System.out.println(path);
+
             System.out.println("Obstacles size");
             System.out.println(obstaclesPos.size());
+            System.out.println("obstacles");
+            System.out.println(obstaclesPos);
 
             return action;
         }
 
+        Coordinate c;
         if (obstacleInFront) {
             switch (dir) {
                 case NORTH:
-                    setYcoor(ycoor + 1);
-                    pos = "(" + xcoor + ", " + ycoor + ")";
-                    if(!obstaclesPos.contains(pos)){
-                        obstaclesPos.add(pos);
+                    c = new Coordinate(this.coor.getXcoor(), this.coor.getYcoor() + 1);
+                    if(!obstaclesPos.contains(c)){
+                        obstaclesPos.add(c);
                     }
-                    setYcoor(ycoor - 1);
                     break;
                 case SOUTH:
-                    setYcoor(ycoor - 1);
-                    pos = "(" + xcoor + ", " + ycoor + ")";
-                    if(!obstaclesPos.contains(pos)){
-                        obstaclesPos.add(pos);
+                    c = new Coordinate(this.coor.getXcoor(), this.coor.getYcoor() - 1);
+                    if(!obstaclesPos.contains(c)){
+                        obstaclesPos.add(c);
                     }
-                    setYcoor(ycoor + 1);
                     break;
                 case EAST:
-                    setXcoor(xcoor + 1);
-                    pos = "(" + xcoor + ", " + ycoor + ")";
-                    if(!obstaclesPos.contains(pos)){
-                        obstaclesPos.add(pos);
+                    c = new Coordinate(this.coor.getXcoor() + 1, this.coor.getYcoor());
+                    if(!obstaclesPos.contains(c)){
+                        obstaclesPos.add(c);
                     }
-                    setXcoor(xcoor - 1);
                     break;
                 case WEST:
-                    setXcoor(xcoor - 1);
-                    pos = "(" + xcoor + ", " + ycoor + ")";
-                    if(!obstaclesPos.contains(pos)){
-                        obstaclesPos.add(pos);
+                    c = new Coordinate(this.coor.getXcoor() - 1, this.coor.getYcoor());
+                    if(!obstaclesPos.contains(c)){
+                        obstaclesPos.add(c);
                     }
-                    setXcoor(xcoor + 1);
                     break;
             }
 
             System.out.println("obstacles");
+            Collections.sort(obstaclesPos, new Comparator<Coordinate>() {
+                @Override
+                public int compare(Coordinate o1, Coordinate o2) {
+                    return Integer.compare(o1.getYcoor(), o2.getYcoor());
+                }
+            });
             System.out.println(obstaclesPos);
 
             prob = r.nextFloat();
@@ -141,8 +146,8 @@ public class VacAgent extends Agent {
             }
         }else{
             if(dir == NORTH) {
-                setYcoor(ycoor + 1);
-                if(!path.contains("(" + xcoor + ", " + ycoor + ")")){
+                this.coor.setYcoor(this.coor.getYcoor() + 1);
+                if(!path.contains(this.coor)){
                     addPos();
                     actions.add(goForward);
                     return goForward;
@@ -151,7 +156,7 @@ public class VacAgent extends Agent {
                       actions.add(goForward);
                       return goForward;
                     } else {
-                        setYcoor(ycoor - 1);
+                        this.coor.setYcoor(this.coor.getYcoor() - 1);
                         prob = r.nextFloat();
                         if (prob < 0.5) {
                             actions.add(turnLeft);
@@ -165,8 +170,8 @@ public class VacAgent extends Agent {
                     }
                 }
             } else if (dir == SOUTH){
-                setYcoor(ycoor - 1);
-                if(!path.contains("(" + xcoor + ", " + ycoor + ")")){
+                this.coor.setYcoor(this.coor.getYcoor() - 1);
+                if(!path.contains(this.coor)){
                     addPos();
                     actions.add(goForward);
                     return goForward;
@@ -175,7 +180,7 @@ public class VacAgent extends Agent {
                         actions.add(goForward);
                         return goForward;
                     } else {
-                        setYcoor(ycoor + 1);
+                        this.coor.setYcoor(this.coor.getYcoor() + 1);
                         prob = r.nextFloat();
                         if (prob < 0.5) {
                             actions.add(turnLeft);
@@ -189,8 +194,8 @@ public class VacAgent extends Agent {
                     }
                 }
             } else if (dir == EAST){
-                setXcoor(xcoor + 1);
-                if(!path.contains("(" + xcoor + ", " + ycoor + ")")){
+                this.coor.setXcoor(this.coor.getXcoor() + 1);
+                if(!path.contains(this.coor)){
                     addPos();
                     actions.add(goForward);
                     return goForward;
@@ -199,7 +204,7 @@ public class VacAgent extends Agent {
                         actions.add(goForward);
                         return goForward;
                     } else {
-                        setXcoor(xcoor - 1);
+                        this.coor.setXcoor(this.coor.getXcoor() - 1);
                         prob = r.nextFloat();
                         if (prob < 0.5) {
                             actions.add(turnLeft);
@@ -213,8 +218,8 @@ public class VacAgent extends Agent {
                     }
                 }
             } else {
-                setXcoor(xcoor - 1);
-                if(!path.contains("(" + xcoor + ", " + ycoor + ")")){
+                this.coor.setXcoor(this.coor.getXcoor() - 1);
+                if(!path.contains(this.coor)){
                     addPos();
                     actions.add(goForward);
                     return goForward;
@@ -223,7 +228,7 @@ public class VacAgent extends Agent {
                         actions.add(goForward);
                         return goForward;
                     } else {
-                        setXcoor(xcoor + 1);
+                        this.coor.setXcoor(this.coor.getXcoor() + 1);
                         prob = r.nextFloat();
                         if (prob < 0.5) {
                             actions.add(turnLeft);
@@ -299,33 +304,14 @@ public class VacAgent extends Agent {
     }
 
     public void addPos(){
-        path.add("(" + xcoor + ", " + ycoor + ")");
+        Coordinate c = new Coordinate(coor.getXcoor(), coor.getYcoor());
+        path.add(c);
         System.out.println("path");
         System.out.println(path);
     }
 
     public String getId() {
         return ID;
-    }
-
-    public void setXcoor(int x){
-        xcoor = x;
-    }
-
-    public int getXcoor(){
-        return xcoor;
-    }
-
-    public void setYcoor(int y){
-        ycoor = y;
-    }
-
-    public int getYcoor(){
-        return ycoor;
-    }
-
-    public int getDir(){
-        return dir;
     }
 
     public void setDir(int dir){
